@@ -1,0 +1,4 @@
+ToolSet: w64 8.0 (local)@D:\parament\tdmgcc
+Options: 
+
+Options:-DCMAKE_MAKE_PROGRAM=D:/aplication/jetbrain/apps/CLion/ch-0/223.7571.171/bin/ninja/win/ninja.exe
