@@ -1,3 +1,10 @@
 # ninja log v5
 3	295	6962294788052555	CMakeFiles/fwnet.dir/main.cpp.obj	67b8c3ef81428d71
 295	700	6962294792049182	fwnet.exe	86cca9bf9b171afc
+6	569	6976566187846464	CMakeFiles/fwnet.dir/main.cpp.obj	67b8c3ef81428d71
+2	570	6976566187846464	CMakeFiles/fwnet.dir/api.cpp.obj	effbe50ffa566727
+570	1414	6976566196268960	fwnet.exe	2abd9e64c76d0ff5
+2	189	6976567912175760	CMakeFiles/fwnet.dir/main.cpp.obj	67b8c3ef81428d71
+190	339	6976567913640870	fwnet.exe	2abd9e64c76d0ff5
+2	186	6976568052061029	CMakeFiles/fwnet.dir/main.cpp.obj	67b8c3ef81428d71
+186	336	6976568053526131	fwnet.exe	2abd9e64c76d0ff5
