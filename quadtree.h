@@ -4,35 +4,36 @@
 #include "stdio.h"
 #include "math.h"
 #include "string.h"
-struct point//Î»ÖÃ
+/*
+typedef struct point
 {
-    int x;
-    int y;
-};
-typedef struct point point;
-typedef struct Node//½Úµã
+    double x,y;
+}point;
+typedef struct boundary
 {
-    point pos;//Î»ÖÃ±äÁ¿
-    char type[4];       //ÐÅºÅÇ¿¶È
-    int num;        //»ùÕ¾±àºÅ
-    int power;      //»ùÕ¾¹¦ÂÊ
-} Node;
-typedef struct Quad
+    double x;   //ä¸­å¿ƒæ¨ªåæ ‡
+    double y;   //ä¸­å¿ƒçºµåæ ‡
+    double w;   //å®½åº¦
+    double h;   //é•¿åº¦
+}boundary;
+typedef struct Quadtree
 {
-    Node *n;
-    struct Quad *netree;
-    struct Quad *nwtree;
-    struct Quad *setree;
-    struct Quad *swtree;
-}Quad;
-typedef Quad * Findtree;
-Findtree CreateTree()       //´´½¨¸ù½Úµã
+    double power;
+    point pos;
+    boundary boundary1;
+    int captical;       //æ‰¿è½½èƒ½åŠ›
+    int num;
+    char type[5];
+    struct Quadtree *southWest;     //è¥¿å—çš„å­èŠ‚ç‚¹
+    struct Quadtree *southEast;     //ä¸œå—çš„å­èŠ‚ç‚¹
+    struct Quadtree *northWest;     //è¥¿åŒ—çš„å­èŠ‚ç‚¹
+    struct Quadtree *northEast;     //ä¸œåŒ—çš„å­èŠ‚ç‚¹
+}Quadtree,*Qt;
+Qt CreateTree(point pos, int num, char type[5],boundary) // åˆ›å»ºèŠ‚ç‚¹
 {
-    auto t=(Findtree) malloc(sizeof (Quad));
-    t->n=nullptr;
-    t->netree=nullptr;
-    t->nwtree=nullptr;
-    t->setree=nullptr;
-    t->swtree=nullptr;
+    auto t = (Qt)malloc(sizeof(Quadtree));
+    strcpy(t->type, type);
+
     return t;
 }
+*/
