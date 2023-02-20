@@ -1,0 +1,123 @@
+// 1. 建立一个分块/四叉树来存储基站信息 struct QuadTree { double x, y; // 基站位置 QuadTree *nw, *ne, *sw, *se; // 四节点 QuadTree(double x, double y): x(x), y(y), nw(nullptr), ne(nullptr), sw(nullptr), se(nullptr) {} };
+
+// 2. 对多个能够提供足够信号强度的通信基站进行对比，找出信号最强的那个基站 double maxSignalStrength = DBL_MIN; int maxSignalStationID; void findStrongestSignal(QuadTree *root) { if (root == nullptr) return; //根据实际情况计算当前节点基站的信号强度 double signalStrength = calculateSignal(root->x, root->y); if (signalStrength > maxSignalStrength) { maxSignalStrength = signalStrength; maxSignalStationID = root->id; } findStrongestSignal(root->nw); findStrongestSignal(root->ne); findStrongestSignal(root->sw); findStrongestSignal(root->se); }
+
+// 3. 在指定的移动轨迹上，判断何时何地离开原有连接的基站通信信号有效范围，判断何时何地进入新的基站有效通信范围 int lastStationID = -1; void track(QuadTree *root, double x, double y) { if (root == nullptr) return; double signalStrength = calculateSignal(x, y); if (signalStrength > maxSignalStrength ) { //超出当前基站的有效范围 if (lastStationID != root->id) { printf("Enter station %d at (%f, %f)\n", root->id, x, y); lastStationID = root->id; } maxSignalStrength = signalStrength; } track(root->nw, x, y); track(root->ne, x, y); track(root->sw, x, y); track(root->se, x, y); }
+
+// 4. 对于完整的移动轨迹，计算需要切换连接上的新基站编号和时刻的序列 void trackInfo(QuadTree *root, vector<pair<int, double>>& info, double x, double y, double t) { if (root == nullptr) return; double signalStrength = calculateSignal(x, y); if (signalStrength > maxSignalStrength) { //超出当前基站的有效范围 if (lastStationID != root->id) { info.push_back(make_pair(root->id, t)); lastStationID = root->id; } maxSignalStrength = signalStrength; } trackInfo(root->nw, info, x, y, t); trackInfo(root->ne, info, x, y, t); trackInfo(root->sw, info, x, y, t); trackInfo(root->se, info, x, y, t); }
+
+class QuadTree
+{
+    constructor(boundary, n)
+    {
+        this.boundary = boundary;
+        this.capacity = n;
+
+        this.points = [];
+        this.divided = false;
+    }
+
+    insert(point)
+    {
+        // 不在边界内，不添加
+        if (!this.boundary.contains(point))
+        {
+            return false;
+        }
+
+        // 节点已满，拆分
+        if (this.points.length < this.capacity)
+        {
+            this.points.push(point);
+            return true;
+        }
+        else
+        {
+            // 拆分
+            if (!this.divided)
+            {
+                this.subdivide();
+            }
+
+            // 将该点插入子节点
+            if (this.northWest.insert(point) || this.northEast.insert(point) ||
+                this.southWest.insert(point) || this.southEast.insert(point))
+            {
+                return true;
+            }
+        }
+    }
+
+    // 拆分节点
+    subdivide()
+    {
+        let x = this.boundary.x;
+        let y = this.boundary.y;
+        let w = this.boundary.w;
+        let h = this.boundary.h;
+
+        let nw = new Boundary(x, y, w / 2, h / 2);
+        this.northWest = new QuadTree(nw, this.capacity);
+
+        let ne = new Boundary(x + w / 2, y, w / 2, h / 2);
+        this.northEast = new QuadTree(ne, this.capacity);
+
+        let sw = new Boundary(x, y + h / 2, w / 2, h / 2);
+        this.southWest = new QuadTree(sw, this.capacity);
+
+        let se = new Boundary(x + w / 2, y + h / 2, w / 2, h / 2);
+        this.southEast = new QuadTree(se, this.capacity);
+
+        this.divided = true;
+    }
+}
+
+// 以下为坐标类
+class Point
+{
+    constructor(x, y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+// 以下为边界类
+class Boundary
+{
+    constructor(x, y, w, h)
+    {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+    }
+
+    // 检查点是否在边界内
+    contains(point)
+    {
+        return (
+            point.x >= this.x - this.w &&
+            point.x <= this.x + this.w &&
+            point.y >= this.y - this.h &&
+            point.y <= this.y + this.h);
+    }
+}
+
+// 使用
+let boundary = new Boundary(256, 256, 512, 512);
+let qtree = new QuadTree(boundary, 4);
+
+let p1 = new Point(260, 260);
+let p2 = new Point(400, 400);
+let p3 = new Point(128, 128);
+let p4 = new Point(300, 300);
+let p5 = new Point(400, 128);
+let p6 = new Point(100, 300);
+
+qtree.insert(p1);
+qtree.insert(p2);
+qtree.insert(p3);
+qtree.insert(p4);
+qtree.insert(p5);
+qtree.insert(p6);

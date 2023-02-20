@@ -7,16 +7,16 @@ int main() {
     fscanf(jz1,"%s",t);
     fscanf(jz2,"%s",t);
     printf("%s\n",t);
-    int posx,posy,num;
+    int num;
     char type[10];
-    double force;
+    double force,posx,posy;
     double xmax=0,ymax=0;
-    while (fscanf(jz1,"%d %d %s %lf %d",&posx,&posy,type,&force,&num)!=EOF)
+    while (fscanf(jz1,"%lf %lf %s %lf %d",&posx,&posy,type,&force,&num)!=EOF)
     {
         if(posx>xmax)xmax=posx;
         if(posy>ymax)ymax=posy;
     }
-    while (fscanf(jz2,"%d %d %s %lf %d",&posx,&posy,type,&force,&num)!=EOF)
+    while (fscanf(jz2,"%lf %lf %s %lf %d",&posx,&posy,type,&force,&num)!=EOF)
     {
         if(posx>xmax)xmax=posx;
         if(posy>ymax)ymax=posy;
