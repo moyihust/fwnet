@@ -30,11 +30,20 @@ int main() {
     rewind(jz1);
     rewind(jz2);
     fscanf(jz1,"%s",t);
-    printf("正在读取%s001",t);
+    printf("正在读取%s001\n",t);
     while (fscanf(jz1,"%lf %lf %s %lf %d",&posx,&posy,type,&force,&num)!=EOF&&posx>0)
     {
         point ins=pointCreate(posx,posy,type,num,force);
         Qtinsert(tree,ins);
     }
+    fscanf(jz2,"%s",t);
+    printf("正在读取%s002\n",t);
+    while (fscanf(jz2,"%lf %lf %s %lf %d",&posx,&posy,type,&force,&num)!=EOF&&posx>0)
+    {
+        point ins= pointCreate(posx,posy,type,num,force);
+        Qtinsert(tree,ins);
+    }
+    findmaxnw(tree);
+    findmaxse(tree);
     return 0;
 }

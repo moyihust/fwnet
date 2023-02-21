@@ -3,9 +3,9 @@
 //
 #ifndef quadtree
 #define quadtree
-#include "stdio.h"
-#include "math.h"
-#include "string.h"
+#include <cstdio>
+#include <cmath>
+#include <cstring>
 
 typedef struct point {
     int x, y;
@@ -14,14 +14,14 @@ typedef struct point {
     int num;
 } point;
 
-void Pointcopy(point &a, point &b)  //å°†bä»˜ç»™a
+void Pointcopy(point &a, point &b)  //½«b¸¶¸øa
 {
     a.x = b.x;
     a.y = b.y;
     return;
 }
 
-point pointCreate(int x, int y,char t[8],int num,double power)  //åˆ›å»ºèŠ‚ç‚¹åæ ‡
+point pointCreate(int x, int y,char t[8],int num,double power)  //´´½¨½Úµã×ø±ê
 {
     point pos;
     pos.x = x;
@@ -33,13 +33,13 @@ point pointCreate(int x, int y,char t[8],int num,double power)  //åˆ›å»ºèŠ‚ç‚¹å
 }
 
 typedef struct boundary {
-    double x;   //ä¸­å¿ƒæ¨ªåæ ‡
-    double y;   //ä¸­å¿ƒçºµåæ ‡
-    double w;   //å®½åº¦
-    double h;   //é•¿åº¦
+    double x;   //ÖÐÐÄºá×ø±ê
+    double y;   //ÖÐÐÄ×Ý×ø±ê
+    double w;   //¿í¶È
+    double h;   //³¤¶È
 } boundary;
 
-boundary createBoundary(double x, double y, double w, double h)        //åˆ›å»ºè¾¹ç•Œ
+boundary createBoundary(double x, double y, double w, double h)        //´´½¨±ß½ç
 {
     boundary bund;
     bund.x = x;
@@ -58,19 +58,19 @@ void boundarycopy(boundary &dest, boundary &sou)   //sou->dest
 }
 
 typedef struct Quadtree {
-    bool divided;       //æ˜¯å¦æ‹†åˆ†    
+    bool divided;       //ÊÇ·ñ²ð·Ö    
     boundary bj;
-    point points[4];     //å½“å‰åŒºåŸŸçš„èŠ‚ç‚¹
-    int length;     //å½“å‰åŸºç«™
-    int captical;   //å½“å‰èŠ‚ç‚¹çš„æœ€å¤§æ•°é‡
+    point points[4];     //µ±Ç°ÇøÓòµÄ½Úµã
+    int length;     //µ±Ç°»ùÕ¾
+    int captical;   //µ±Ç°½ÚµãµÄ×î´óÊýÁ¿
     char type[5];
-    struct Quadtree *southWest;     //è¥¿å—çš„å­èŠ‚ç‚¹
-    struct Quadtree *southEast;     //ä¸œå—çš„å­èŠ‚ç‚¹
-    struct Quadtree *northWest;     //è¥¿åŒ—çš„å­èŠ‚ç‚¹
-    struct Quadtree *northEast;     //ä¸œåŒ—çš„å­èŠ‚ç‚¹
+    struct Quadtree *southWest;     //Î÷ÄÏµÄ×Ó½Úµã
+    struct Quadtree *southEast;     //¶«ÄÏµÄ×Ó½Úµã
+    struct Quadtree *northWest;     //Î÷±±µÄ×Ó½Úµã
+    struct Quadtree *northEast;     //¶«±±µÄ×Ó½Úµã
 } Quadtree, *Qt;
-
-Qt createTree(boundary boundary1, int n) // åˆ›å»ºèŠ‚ç‚¹,æ ¹æ®è¾¹ç•Œå’Œæ‰¿è½½é‡å»ºç«‹èŠ‚ç‚¹
+bool Qtinsert(Qt tree, point ins);
+Qt createTree(boundary boundary1, int n) // ´´½¨½Úµã,¸ù¾Ý±ß½çºÍ³ÐÔØÁ¿½¨Á¢½Úµã
 {
     auto t = (Qt) malloc(sizeof(Quadtree));
     t->bj = boundary1;
@@ -108,18 +108,51 @@ void subdivide(Qt tree) {
     tree->divided = true;
 
 }
-
+int whereis(Qt tree,point ins)
+{
+    if(contain(tree->southWest->bj,ins))
+        return 0;
+    else if(contain(tree->northWest->bj,ins))
+        return 1;
+    else if(contain(tree->southEast->bj,ins))
+        return 2;
+    else if(contain(tree->northEast->bj,ins))
+        return 3;
+}
+void replace(Qt tree)
+{
+    for(int i=0;i<tree->length;i++)
+    {
+        switch(whereis(tree,tree->points[i]))
+        {
+            case 0:
+                Qtinsert(tree->southWest,tree->points[i]);
+                break;
+            case 1:
+                Qtinsert(tree->northWest,tree->points[i]);
+                break;
+            case 2:
+                Qtinsert(tree->southEast,tree->points[i]);
+                break;
+            case 3:
+                Qtinsert(tree->northEast,tree->points[i]);
+                break;
+        };
+    }
+    tree->length=0;
+}
 bool Qtinsert(Qt tree, point ins) {
     if (!contain(tree->bj, ins)) {
         return false;
     }
-    if (tree->length < tree->captical) {
+    if (tree->length < tree->captical&&!tree->divided) {
         tree->points[tree->length] = ins;
         tree->length++;
         return true;
     }else {
         if (!tree->divided) {
             subdivide(tree);
+            replace(tree);
         }
         if (Qtinsert(tree->northEast, ins) || Qtinsert(tree->southEast, ins) || Qtinsert(tree->northWest, ins) ||
             Qtinsert(tree->southWest, ins)) {
@@ -128,7 +161,33 @@ bool Qtinsert(Qt tree, point ins) {
     }
     return false;
 }
+void pointprintf(point out)         //´òÓ¡»ùÕ¾ÐÅÏ¢
+{
+    printf("×ø±êx=%d,y=%d,±àºÅ%d,ÀàÐÍÎª%s£¬ÐÅºÅ¹¦ÂÊÎª%lf\n",out.x,out.y,out.num,out.type,out.sign);
+}
+void findmaxnw(Qt tree)             //ÕÒµ½×îÎ÷±±µÄ½Úµã
+{
+    Qt temp=tree;
+    while(temp->northWest)
+    {
+        temp=temp->northWest;
+    }
+    for(int i=0;i<temp->length;i++)
+    {
+        pointprintf(temp->points[i]);
+    }
+}
 
-
-
+void findmaxse(Qt tree)             //ÕÒµ½×î¶«ÄÏ±ßµÄ½Úµã
+{
+    Qt temp=tree;
+    while(temp->southEast)
+    {
+        temp=temp->southEast;
+    }
+    for(int i=0;i<temp->length;i++)
+    {
+        pointprintf(temp->points[i]);
+    }
+}
 #endif
