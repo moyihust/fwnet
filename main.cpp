@@ -21,6 +21,20 @@ int main() {
         if(posx>xmax)xmax=posx;
         if(posy>ymax)ymax=posy;
     }
-    printf("%lf %lf",xmax,ymax);
+    double bx=(0+xmax)/2;
+    double by=(0+ymax)/2;
+    double w=xmax/2;
+    double h=ymax/2;
+    boundary bt=createBoundary(bx,by,w,h);
+    Qt tree= createTree(bt,4);
+    rewind(jz1);
+    rewind(jz2);
+    fscanf(jz1,"%s",t);
+    printf("ÕýÔÚ¶ÁÈ¡%s001",t);
+    while (fscanf(jz1,"%lf %lf %s %lf %d",&posx,&posy,type,&force,&num)!=EOF&&posx>0)
+    {
+        point ins=pointCreate(posx,posy,type,num,force);
+        Qtinsert(tree,ins);
+    }
     return 0;
 }
