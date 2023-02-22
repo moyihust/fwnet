@@ -2,9 +2,39 @@
 
 // 2. 对多个能够提供足够信号强度的通信基站进行对比，找出信号最强的那个基站 double maxSignalStrength = DBL_MIN; int maxSignalStationID; void findStrongestSignal(QuadTree *root) { if (root == nullptr) return; //根据实际情况计算当前节点基站的信号强度 double signalStrength = calculateSignal(root->x, root->y); if (signalStrength > maxSignalStrength) { maxSignalStrength = signalStrength; maxSignalStationID = root->id; } findStrongestSignal(root->nw); findStrongestSignal(root->ne); findStrongestSignal(root->sw); findStrongestSignal(root->se); }
 
-// 3. 在指定的移动轨迹上，判断何时何地离开原有连接的基站通信信号有效范围，判断何时何地进入新的基站有效通信范围 int lastStationID = -1; void track(QuadTree *root, double x, double y) { if (root == nullptr) return; double signalStrength = calculateSignal(x, y); if (signalStrength > maxSignalStrength ) { //超出当前基站的有效范围 if (lastStationID != root->id) { printf("Enter station %d at (%f, %f)\n", root->id, x, y); lastStationID = root->id; } maxSignalStrength = signalStrength; } track(root->nw, x, y); track(root->ne, x, y); track(root->sw, x, y); track(root->se, x, y); }
+// 3. 在指定的移动轨迹上，判断何时何地离开原有连接的基站通信信号有效范围，判断何时何地进入新的基站有效通信范围
+int lastStationID = -1;
+void track(QuadTree *root, double x, double y)
+ {
+ if (root == nullptr) return;
+  double signalStrength = calculateSignal(x, y);
+   if (signalStrength > maxSignalStrength )
+   {
+   //超出当前基站的有效范围
+   if (lastStationID != root->id)
+   { printf("Enter station %d at (%f, %f)\n", root->id, x, y);
+    lastStationID = root->id;
+     }
+      maxSignalStrength = signalStrength;
+      }
+      track(root->nw, x, y);
+       track(root->ne, x, y);
+        track(root->sw, x, y);
+         track(root->se, x, y);
+          }
 
-// 4. 对于完整的移动轨迹，计算需要切换连接上的新基站编号和时刻的序列 void trackInfo(QuadTree *root, vector<pair<int, double>>& info, double x, double y, double t) { if (root == nullptr) return; double signalStrength = calculateSignal(x, y); if (signalStrength > maxSignalStrength) { //超出当前基站的有效范围 if (lastStationID != root->id) { info.push_back(make_pair(root->id, t)); lastStationID = root->id; } maxSignalStrength = signalStrength; } trackInfo(root->nw, info, x, y, t); trackInfo(root->ne, info, x, y, t); trackInfo(root->sw, info, x, y, t); trackInfo(root->se, info, x, y, t); }
+// 4. 对于完整的移动轨迹，计算需要切换连接上的新基站编号和时刻的序列
+ void trackInfo(QuadTree *root, vector<pair<int, double>>& info, double x, double y, double t)
+  if (root == nullptr)
+  return;
+   double signalStrength = calculateSignal(x, y);
+   if (signalStrength > maxSignalStrength)
+    { //超出当前基站的有效范围
+    if (lastStationID != root->id)
+     { info.push_back(make_pair(root->id, t)); lastStationID = root->id;
+      } maxSignalStrength = signalStrength; }
+      trackInfo(root->nw, info, x, y, t); trackInfo(root->ne, info, x, y, t); trackInfo(root->sw, info, x, y, t); trackInfo(root->se, info, x, y, t); }
+
 
 class QuadTree
 {

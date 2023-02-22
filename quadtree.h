@@ -84,8 +84,8 @@ Qt createTree(boundary boundary1, int n) // 创建节点,根据边界和承载量建立节点
     return t;
 }
 
-bool contain(boundary t, point n) {
-    return (n.x > t.x - t.w && n.x < t.x + t.w && n.y > t.y - t.h && n.y < t.y + t.h);
+bool contain(boundary t, int x ,int y) {
+    return (x > t.x - t.w && x < t.x + t.w && y > t.y - t.h && y < t.y + t.h);
 }
 
 // *TODO divided tree
@@ -110,13 +110,13 @@ void subdivide(Qt tree) {
 }
 int whereis(Qt tree,point ins)
 {
-    if(contain(tree->southWest->bj,ins))
+    if(contain(tree->southWest->bj,ins.x,ins.y))
         return 0;
-    else if(contain(tree->northWest->bj,ins))
+    else if(contain(tree->northWest->bj,ins.x,ins.y))
         return 1;
-    else if(contain(tree->southEast->bj,ins))
+    else if(contain(tree->southEast->bj,ins.x,ins.y))
         return 2;
-    else if(contain(tree->northEast->bj,ins))
+    else if(contain(tree->northEast->bj,ins.x,ins.y))
         return 3;
 }
 void replace(Qt tree)
@@ -142,7 +142,7 @@ void replace(Qt tree)
     tree->length=0;
 }
 bool Qtinsert(Qt tree, point ins) {
-    if (!contain(tree->bj, ins)) {
+    if (!contain(tree->bj, ins.x,ins.y)) {
         return false;
     }
     if (tree->length < tree->captical&&!tree->divided) {
@@ -190,4 +190,57 @@ void findmaxse(Qt tree)             //找到最东南边的节点
         pointprintf(temp->points[i]);
     }
 }
+//max of four double number
+/*double maxoffour(double a,double b,double c,double e)
+{
+    if(a<b)a=b;
+    if(a<c)a=c;
+    if(a<e)a=e;
+    return a;
+}
+typedef  struct receiver        //接收器数据
+{
+    double xs,ys,xe,ye;         //开始位置和终止位置
+    int sh,sm,num;      //开始小时，开始分钟 编号
+    double speed;
+}receiver;
+receiver receiverInit(double xs, double ys , double xe, double ye , int sh, int sm, double speed,int num) //初始化接收器
+{
+    receiver time;
+    time.xs=xs;
+    time.ys=ys;
+    time.xe=xe;
+    time.ye=ye;
+    time.sh=sh;
+    time.sm=sm;
+    time.speed=speed;
+    time.num=num;
+    return  time;
+}
+double getCitySign(double x,double y,point sou)
+{
+    return sou.sign*(90000/(pow(sou.x-x,2)+pow(sou.y-y,2)));
+}
+double getHighroad(double x,double y,point sou)
+{
+    return sou.sign*(25000000/(pow(sou.x-x,2)+pow(sou.y-y,2)));
+}
+double getvilliage(double x,double y,point sou)
+{
+    return sou.sign*(1000000/(pow(sou.x-x,2)+pow(sou.y-y,2)));
+}
+Qt searchtree(Qt tree,double x,double y)
+{
+    if (tree->southEast->southEast== nullptr)
+        return tree;
+    if(contain(tree->southEast->bj,x,y))
+        searchtree(tree->southEast,x,y);
+    else if(contain(tree->southWest->bj,x,y))
+        searchtree(tree->southWest,x,y);
+    else if(contain(tree->northWest->bj,x,y))
+        searchtree(tree->northWest,x,y);
+    else if(contain(tree->northEast->bj,x,y))
+        searchtree(tree->northEast,x,y);
+}*/
+
 #endif
