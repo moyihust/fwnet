@@ -85,7 +85,7 @@ Qt createTree(boundary boundary1, int n) // 创建节点,根据边界和承载量建立节点
 }
 
 bool contain(boundary t, int x ,int y) {
-    return (x > t.x - t.w && x < t.x + t.w && y > t.y - t.h && y < t.y + t.h);
+    return (x >= t.x - t.w && x <= t.x + t.w && y >= t.y - t.h && y <= t.y + t.h);
 }
 
 // *TODO divided tree
@@ -191,7 +191,7 @@ void findmaxse(Qt tree)             //找到最东南边的节点
     }
 }
 //max of four double number
-/*double maxoffour(double a,double b,double c,double e)
+double maxoffour(double a,double b,double c,double e)
 {
     if(a<b)a=b;
     if(a<c)a=c;
@@ -217,21 +217,23 @@ receiver receiverInit(double xs, double ys , double xe, double ye , int sh, int 
     time.num=num;
     return  time;
 }
-double getCitySign(double x,double y,point sou)
+double distance(double x1,double y1,double x2,double y2)        //返回距离的平方
 {
-    return sou.sign*(90000/(pow(sou.x-x,2)+pow(sou.y-y,2)));
+    return (pow(x1-x2,2)+pow(y1-y2,2));
 }
-double getHighroad(double x,double y,point sou)
+double getSignpower(double x,double y,point sou)
 {
-    return sou.sign*(25000000/(pow(sou.x-x,2)+pow(sou.y-y,2)));
+    if(!strcmp("城区",sou.type))
+        return sou.sign*(90000/ distance(x,y,sou.x,sou.y));
+    else if(!strcmp("乡镇",sou.type))
+        return sou.sign*(1000000/distance(x,y,sou.x,sou.y));
+    else if(!strcmp(sou.type,"高速"))
+        return sou.sign*(25000000/distance(x,y,sou.x,sou.y));
 }
-double getvilliage(double x,double y,point sou)
-{
-    return sou.sign*(1000000/(pow(sou.x-x,2)+pow(sou.y-y,2)));
-}
+
 Qt searchtree(Qt tree,double x,double y)
 {
-    if (tree->southEast->southEast== nullptr)
+    if (tree->southEast== nullptr)
         return tree;
     if(contain(tree->southEast->bj,x,y))
         searchtree(tree->southEast,x,y);
@@ -239,8 +241,108 @@ Qt searchtree(Qt tree,double x,double y)
         searchtree(tree->southWest,x,y);
     else if(contain(tree->northWest->bj,x,y))
         searchtree(tree->northWest,x,y);
-    else if(contain(tree->northEast->bj,x,y))
-        searchtree(tree->northEast,x,y);
-}*/
+    else searchtree(tree->northEast,x,y);
+}
+//两个边界是否相交
+bool isoverlaps(boundary a,boundary b)
+{
+    return (fabs(a.x-b.x)< a.w+b.w)&&(fabs(a.y-b.y)<a.h+b.h);
+}
+
+//找到当前节点内的最小矩形，
+boundary findMaxboundary(Qt tree,double x,double y)
+{
+    Qt temp=searchtree(tree,x,y);
+    double min=999999999999,dt,ax,ay;
+    for(int i=0;i<temp->length;i++)
+    {
+        if(min> (dt=distance(temp->points[i].x,temp->points[i].y,x,y)))
+        {
+            min=dt;
+            ax=temp->points[i].x;
+            ay=temp->points[i].y;
+        }
+    }
+    boundary minSquar= createBoundary(ax,ay,sqrt(min), sqrt(min));
+    return minSquar;
+}
+//找到最小矩形中的点
+double findMaxpoint(Qt tree,boundary mins,point ans[30],int &n_ans)
+{
+//   递归结束条件
+    if(tree->northWest== nullptr&& isoverlaps(mins,tree->bj))
+    {
+        for(int i=0;i<tree->length;i++)
+        {
+            if(contain(mins,tree->points[i].x,tree->points[i].y))
+            {
+                ans[n_ans]=tree->points[i];
+                n_ans++;
+            }
+        }
+        return 0;
+    }else if(tree->northWest== nullptr&& !isoverlaps(mins,tree->bj))
+    {
+        return 0;
+    }
+    else
+    {
+        if(isoverlaps(mins,tree->northWest->bj))
+            findMaxpoint(tree->northWest,mins,ans,n_ans);
+        else if(isoverlaps(mins,tree->northEast->bj))
+            findMaxpoint(tree->northEast,mins,ans,n_ans);
+        else if(isoverlaps(mins,tree->southWest->bj))
+            findMaxpoint(tree->southWest,mins,ans,n_ans);
+        else if(isoverlaps(tree->southEast->bj,mins))
+            findMaxpoint(tree->southEast,mins,ans,n_ans);
+    }
+}
+
+/*
+读入文件
+输入:receiver 类型
+*/
+int ydinput(receiver move[])
+{
+    FILE *yd= fopen("yd001.txt","r");
+    if(yd== nullptr)
+    {
+        printf("文件打开失败");
+        return -1;
+    }
+    int i=0;
+    while(fscanf(yd,"%lf %lf %lf %lf %lf %d %d %d",&move[i].xs,&move[i].ys,&move[i].xe,&move[i].ye,&move[i].speed,&move[i].sh,&move[i].sm,&move[i].num))
+    {
+        i++;
+    }
+    printf("文件读入成功，成功读入%d行数据\n",i);
+    return 1;
+}
+int movingWithoutfake(Qt city,Qt country,Qt highway,receiver move[])
+{
+    int i=0;
+    double dx,dy;//每个时间段移动的x，y方向上的距离
+    double xnow,ynow;//当前时间段的坐标
+    int durmins,dursec;//每段经历过的时间
+    double rangxkm,rangykm;//距离的平方
+    double ticks;//当前秒数
+    int numbef,num;
+    int timenowh,timeNowmin;
+    if (move[i].speed==0)printf("未输入数据");
+    else while(move[i].speed!=0)
+        {
+            printf("/********第%d段移动*****/",i+1);
+            rangxkm=pow((move[i].xe-move[i].xs)/1000,2);
+            rangykm=pow((move[i].ye-move[i].ys)/1000,2);
+            durmins=(sqrt(rangykm+rangxkm)/move[i].speed)*60;
+            dursec=durmins*60;
+            dx=(move[i].xe-move[i].xs)/dursec;
+            dy=(move[i].xe-move[i].xs)/dursec;
+            timenowh=move[i].sh;timeNowmin=move[i].sm;
+            xnow=move[i].xs,ynow=move[i].ys;
+
+        }
+}
+
 
 #endif
