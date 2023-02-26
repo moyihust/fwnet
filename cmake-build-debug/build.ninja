@@ -65,7 +65,7 @@ build CMakeFiles/fwnet.dir/main.cpp.obj: CXX_COMPILER__fwnet_Debug D$:/learning/
 
 build fwnet.exe: CXX_EXECUTABLE_LINKER__fwnet_Debug CMakeFiles/fwnet.dir/main.cpp.obj
   FLAGS = -g
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -Wl,-Bstatic  -leasyx  -Wl,-Bdynamic  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\fwnet.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

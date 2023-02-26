@@ -6,7 +6,8 @@
 #include <cstdio>
 #include <cmath>
 #include <cstring>
-
+#include <iostream>
+int n_ans;
 typedef struct point {
     int x, y;
     double sign;
@@ -84,7 +85,7 @@ Qt createTree(boundary boundary1, int n) // 创建节点,根据边界和承载量建立节点
     return t;
 }
 
-bool contain(boundary t, int x ,int y) {
+bool contain(boundary t, double x ,double y) {
     return (x >= t.x - t.w && x <= t.x + t.w && y >= t.y - t.h && y <= t.y + t.h);
 }
 
@@ -118,6 +119,7 @@ int whereis(Qt tree,point ins)
         return 2;
     else if(contain(tree->northEast->bj,ins.x,ins.y))
         return 3;
+    return -1;
 }
 void replace(Qt tree)
 {
@@ -190,33 +192,13 @@ void findmaxse(Qt tree)             //找到最东南边的节点
         pointprintf(temp->points[i]);
     }
 }
-//max of four double number
-double maxoffour(double a,double b,double c,double e)
-{
-    if(a<b)a=b;
-    if(a<c)a=c;
-    if(a<e)a=e;
-    return a;
-}
+
 typedef  struct receiver        //接收器数据
 {
     double xs,ys,xe,ye;         //开始位置和终止位置
     int sh,sm,num;      //开始小时，开始分钟 编号
     double speed;
 }receiver;
-receiver receiverInit(double xs, double ys , double xe, double ye , int sh, int sm, double speed,int num) //初始化接收器
-{
-    receiver time;
-    time.xs=xs;
-    time.ys=ys;
-    time.xe=xe;
-    time.ye=ye;
-    time.sh=sh;
-    time.sm=sm;
-    time.speed=speed;
-    time.num=num;
-    return  time;
-}
 double distance(double x1,double y1,double x2,double y2)        //返回距离的平方
 {
     return (pow(x1-x2,2)+pow(y1-y2,2));
@@ -224,18 +206,20 @@ double distance(double x1,double y1,double x2,double y2)        //返回距离的平方
 double getSignpower(double x,double y,point sou)
 {
     if(!strcmp("城区",sou.type))
-        return sou.sign*(90000/ distance(x,y,sou.x,sou.y));
+        return sou.sign*pow(300,2)/ distance(x,y,sou.x,sou.y);
     else if(!strcmp("乡镇",sou.type))
-        return sou.sign*(1000000/distance(x,y,sou.x,sou.y));
+        return sou.sign*pow(1000,2)/distance(x,y,sou.x,sou.y);
     else if(!strcmp(sou.type,"高速"))
-        return sou.sign*(25000000/distance(x,y,sou.x,sou.y));
+        return sou.sign*pow(5000,2)/distance(x,y,sou.x,sou.y);
+    return -1;
 }
 
 Qt searchtree(Qt tree,double x,double y)
 {
+    if(tree== nullptr)return tree;
     if (tree->southEast== nullptr)
         return tree;
-    if(contain(tree->southEast->bj,x,y))
+    else if(contain(tree->southEast->bj,x,y))
         searchtree(tree->southEast,x,y);
     else if(contain(tree->southWest->bj,x,y))
         searchtree(tree->southWest,x,y);
@@ -263,11 +247,11 @@ boundary findMaxboundary(Qt tree,double x,double y)
             ay=temp->points[i].y;
         }
     }
-    boundary minSquar= createBoundary(ax,ay,sqrt(min), sqrt(min));
+    boundary minSquar= createBoundary(x,y,sqrt(min), sqrt(min));
     return minSquar;
 }
 //找到最小矩形中的点
-double findMaxpoint(Qt tree,boundary mins,point ans[30],int &n_ans)
+double findPointinside(Qt tree, boundary mins, point ans[30])
 {
 //   递归结束条件
     if(tree->northWest== nullptr&& isoverlaps(mins,tree->bj))
@@ -288,13 +272,49 @@ double findMaxpoint(Qt tree,boundary mins,point ans[30],int &n_ans)
     else
     {
         if(isoverlaps(mins,tree->northWest->bj))
-            findMaxpoint(tree->northWest,mins,ans,n_ans);
+            findPointinside(tree->northWest, mins, ans);
         else if(isoverlaps(mins,tree->northEast->bj))
-            findMaxpoint(tree->northEast,mins,ans,n_ans);
+            findPointinside(tree->northEast, mins, ans);
         else if(isoverlaps(mins,tree->southWest->bj))
-            findMaxpoint(tree->southWest,mins,ans,n_ans);
+            findPointinside(tree->southWest, mins, ans);
         else if(isoverlaps(tree->southEast->bj,mins))
-            findMaxpoint(tree->southEast,mins,ans,n_ans);
+            findPointinside(tree->southEast, mins, ans);
+    }
+}
+//函数jzmax
+//返回信号最大的基站编号
+//输入：三棵树，x,y
+point* jzmax(Qt city,Qt village,Qt highway,double x,double y)
+{
+    boundary bcity= findMaxboundary(city,x,y);
+    point ans[100];
+    findPointinside(city, bcity,ans);
+    boundary mincountry= findMaxboundary(village,x,y);
+    findPointinside(village, mincountry, ans);
+    boundary minhighway= findMaxboundary(highway,x,y);
+    findPointinside(highway,minhighway,ans);
+    double maxSignpower=-1;
+    int numMax=-1;
+    point *max= nullptr;
+    for(int i=0;i<n_ans;i++)
+    {
+        if(maxSignpower< getSignpower(x,y,ans[i]))
+        {
+            maxSignpower= getSignpower(x,y,ans[i]);
+            numMax=ans[i].num;
+            max=ans+i;
+        }
+    }
+    n_ans=0;
+    if(maxSignpower>=1)return max;
+    else return nullptr;
+}
+
+void reInit(receiver *t,int n)
+{
+    for(int i=0;i<n;i++)
+    {
+        t[i].speed=0;
     }
 }
 
@@ -310,39 +330,87 @@ int ydinput(receiver move[])
         printf("文件打开失败");
         return -1;
     }
+    char t[8];
+    fscanf(yd,"%s",t);
     int i=0;
-    while(fscanf(yd,"%lf %lf %lf %lf %lf %d %d %d",&move[i].xs,&move[i].ys,&move[i].xe,&move[i].ye,&move[i].speed,&move[i].sh,&move[i].sm,&move[i].num))
+    while(fscanf(yd,"%lf %lf %lf %lf %lf %d %d ",&move[i].xs,&move[i].ys,&move[i].xe,&move[i].ye,&move[i].speed,&move[i].sh,&move[i].sm)!=EOF&&move[i].xs>0)
     {
         i++;
     }
     printf("文件读入成功，成功读入%d行数据\n",i);
     return 1;
 }
-int movingWithoutfake(Qt city,Qt country,Qt highway,receiver move[])
+void display(point *t,int type,double x,double y,int h,int m,int sec)
 {
-    int i=0;
-    double dx,dy;//每个时间段移动的x，y方向上的距离
-    double xnow,ynow;//当前时间段的坐标
-    int durmins,dursec;//每段经历过的时间
-    double rangxkm,rangykm;//距离的平方
-    double ticks;//当前秒数
-    int numbef,num;
-    int timenowh,timeNowmin;
-    if (move[i].speed==0)printf("未输入数据");
-    else while(move[i].speed!=0)
-        {
-            printf("/********第%d段移动*****/",i+1);
-            rangxkm=pow((move[i].xe-move[i].xs)/1000,2);
-            rangykm=pow((move[i].ye-move[i].ys)/1000,2);
-            durmins=(sqrt(rangykm+rangxkm)/move[i].speed)*60;
-            dursec=durmins*60;
-            dx=(move[i].xe-move[i].xs)/dursec;
-            dy=(move[i].xe-move[i].xs)/dursec;
-            timenowh=move[i].sh;timeNowmin=move[i].sm;
-            xnow=move[i].xs,ynow=move[i].ys;
-
-        }
+    if(type>0&&t!= nullptr) {
+        printf("在%d时%d分%d秒,位于(%f,%f)处连接上编号为%d，信号强度为%f\n", h, m, sec, x, y,t->num,getSignpower(x, y, *t));
+    }
+    else
+        printf("在%d时%d分%d秒,位于(%f,%f)处,无有效连接信号\n",h,m,sec,x,y);
 }
+
+
+int movingWithoutfake(Qt city,Qt country,Qt highway,receiver move[]) {
+    int i = 0;
+    double dx, dy;//每个时间段移动的x，y方向上的距离
+    double xnow, ynow;//当前时间段的坐标
+    int durmins, dursec;//每段经历过的时间
+    double rangxkm, rangykm;//距离的平方
+    double ticks;//当前秒数
+    int numbef = 0, numNow;
+    int timenowh, timeNowmin;
+    if (move[i].speed == 0)printf("未输入数据");
+    else
+        while (move[i].speed != 0) {
+            if(i>=2)
+                i=i;
+            printf("/********第%d段移动*****/\n", i + 1);
+            rangxkm = pow((move[i].xe - move[i].xs) / 1000, 2);
+            rangykm = pow((move[i].ye - move[i].ys) / 1000, 2);
+            durmins = (sqrt(rangykm + rangxkm) / move[i].speed) * 60;
+            dursec = durmins * 60;
+            dx = (move[i].xe - move[i].xs) / dursec;
+            dy = (move[i].ye - move[i].ys) / dursec;
+            timenowh = move[i].sh;
+            timeNowmin = move[i].sm;
+            xnow = move[i].xs, ynow = move[i].ys;
+            point *temp = nullptr;
+            int j = 0, k = 0;
+            for (j = 0; j < dursec; j++) {
+                temp = jzmax(city, country, highway, xnow, ynow);
+                if (temp != nullptr)numNow = temp->num;
+                else numNow = -1;
+                if (numbef != numNow) {
+                    display(temp, numNow, xnow, ynow, timenowh, timeNowmin, ticks);
+                    numbef = numNow;
+                }
+                ticks++;
+                xnow += dx;
+                ynow += dy;
+                if (ticks >= 60) {
+                    timeNowmin++;
+                    ticks = 0;
+                }
+                if (timeNowmin >= 60) {
+                    timenowh++;
+                    timeNowmin = 0;
+                }
+            }
+                if (move[i + 1].speed == 0)//最后一段移动的特殊处理
+                {
+                    xnow = move[i].xe;
+                    ynow = move[i].ye;
+                    temp = jzmax(city, country, highway, xnow, ynow);
+                    if (temp != nullptr)numNow = temp->num;
+                    else numbef = -1;
+                    display(temp, numNow, xnow, ynow, timenowh, timeNowmin, ticks);
+                }
+            i++;
+            }
+    return 0;
+}
+
+
 
 
 #endif
