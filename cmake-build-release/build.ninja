@@ -12,7 +12,7 @@
 
 # =============================================================================
 # Project: fwnet
-# Configurations: Debug
+# Configurations: Release
 # =============================================================================
 
 #############################################
@@ -24,7 +24,7 @@ ninja_required_version = 1.5
 #############################################
 # Set configuration variable for custom commands.
 
-CONFIGURATION = Debug
+CONFIGURATION = Release
 # =============================================================================
 # Include auxiliary files.
 
@@ -39,7 +39,7 @@ include CMakeFiles/rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = D$:/learning/coding/project/fwnet/cmake-build-debug/
+cmake_ninja_workdir = D$:/learning/coding/project/fwnet/cmake-build-release/
 # =============================================================================
 # Object build statements for EXECUTABLE target fwnet
 
@@ -49,9 +49,9 @@ cmake_ninja_workdir = D$:/learning/coding/project/fwnet/cmake-build-debug/
 
 build cmake_object_order_depends_target_fwnet: phony || CMakeFiles/fwnet.dir
 
-build CMakeFiles/fwnet.dir/main.cpp.obj: CXX_COMPILER__fwnet_Debug D$:/learning/coding/project/fwnet/main.cpp || cmake_object_order_depends_target_fwnet
+build CMakeFiles/fwnet.dir/main.cpp.obj: CXX_COMPILER__fwnet_Release D$:/learning/coding/project/fwnet/main.cpp || cmake_object_order_depends_target_fwnet
   DEP_FILE = CMakeFiles\fwnet.dir\main.cpp.obj.d
-  FLAGS = -g -fdiagnostics-color=always -std=gnu++17
+  FLAGS = -O3 -DNDEBUG -fdiagnostics-color=always -std=gnu++17
   OBJECT_DIR = CMakeFiles\fwnet.dir
   OBJECT_FILE_DIR = CMakeFiles\fwnet.dir
   TARGET_COMPILE_PDB = CMakeFiles\fwnet.dir\
@@ -65,8 +65,8 @@ build CMakeFiles/fwnet.dir/main.cpp.obj: CXX_COMPILER__fwnet_Debug D$:/learning/
 #############################################
 # Link the executable fwnet.exe
 
-build fwnet.exe: CXX_EXECUTABLE_LINKER__fwnet_Debug CMakeFiles/fwnet.dir/main.cpp.obj
-  FLAGS = -g
+build fwnet.exe: CXX_EXECUTABLE_LINKER__fwnet_Release CMakeFiles/fwnet.dir/main.cpp.obj
+  FLAGS = -O3 -DNDEBUG
   LINK_LIBRARIES = -Wl,-Bstatic  -leasyx  -Wl,-Bdynamic  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\fwnet.dir
   POST_BUILD = cd .
@@ -81,7 +81,7 @@ build fwnet.exe: CXX_EXECUTABLE_LINKER__fwnet_Debug CMakeFiles/fwnet.dir/main.cp
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cmd.exe /C "cd /D D:\learning\coding\project\fwnet\cmake-build-debug && D:\aplication\jetbrain\apps\CLion\ch-0\223.8617.54\bin\cmake\win\x64\bin\cmake.exe -E echo "No interactive CMake dialog available.""
+  COMMAND = cmd.exe /C "cd /D D:\learning\coding\project\fwnet\cmake-build-release && D:\aplication\jetbrain\apps\CLion\ch-0\223.8617.54\bin\cmake\win\x64\bin\cmake.exe -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -92,7 +92,7 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cmd.exe /C "cd /D D:\learning\coding\project\fwnet\cmake-build-debug && D:\aplication\jetbrain\apps\CLion\ch-0\223.8617.54\bin\cmake\win\x64\bin\cmake.exe --regenerate-during-build -SD:\learning\coding\project\fwnet -BD:\learning\coding\project\fwnet\cmake-build-debug"
+  COMMAND = cmd.exe /C "cd /D D:\learning\coding\project\fwnet\cmake-build-release && D:\aplication\jetbrain\apps\CLion\ch-0\223.8617.54\bin\cmake\win\x64\bin\cmake.exe --regenerate-during-build -SD:\learning\coding\project\fwnet -BD:\learning\coding\project\fwnet\cmake-build-release"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -110,7 +110,7 @@ build fwnet: phony fwnet.exe
 # =============================================================================
 
 #############################################
-# Folder: D:/learning/coding/project/fwnet/cmake-build-debug
+# Folder: D:/learning/coding/project/fwnet/cmake-build-release
 
 build all: phony fwnet.exe
 
