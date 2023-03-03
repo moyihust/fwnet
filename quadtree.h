@@ -8,6 +8,8 @@
 #include <cstring>
 #include <iostream>
 #include <cstdlib>
+#include <cstdlib>
+int lengthofse=0,lenthofnw=0;
 int n_ans;
 typedef struct point {
     int x, y;
@@ -16,11 +18,12 @@ typedef struct point {
     int num;
 } point;
 
-void Pointcopy(point &a, point &b)  //½«b¸¶¸øa
+void setPoint(point *t,int num)
 {
-    a.x = b.x;
-    a.y = b.y;
-    return;
+    for(int i=0;i<num;i++)
+    {
+        t[i].x=-1;t[i].y=-1;t[i].num=-1;t[i].sign=0;
+    }
 }
 
 point pointCreate(int x, int y,char t[8],int num,double power)  //´´½¨½Úµã×ø±ê
@@ -51,14 +54,6 @@ boundary createBoundary(double x, double y, double w, double h)        //´´½¨±ß½
     return bund;
 }
 
-void boundarycopy(boundary &dest, boundary &sou)   //sou->dest
-{
-    dest.x = sou.y;
-    dest.y = sou.y;
-    dest.w = sou.w;
-    dest.h = sou.h;
-}
-
 typedef struct Quadtree {
     bool divided;       //ÊÇ·ñ²ğ·Ö    
     boundary bj;
@@ -66,6 +61,7 @@ typedef struct Quadtree {
     int length;     //µ±Ç°»ùÕ¾
     int captical;   //µ±Ç°½ÚµãµÄ×î´óÊıÁ¿
     char type[5];
+    struct Quadtree *father;
     struct Quadtree *southWest;     //Î÷ÄÏµÄ×Ó½Úµã
     struct Quadtree *southEast;     //¶«ÄÏµÄ×Ó½Úµã
     struct Quadtree *northWest;     //Î÷±±µÄ×Ó½Úµã
@@ -83,6 +79,7 @@ Qt createTree(boundary boundary1, int n) // ´´½¨½Úµã,¸ù¾İ±ß½çºÍ³ĞÔØÁ¿½¨Á¢½Úµã
     t->southEast = nullptr;
     t->northWest = nullptr;
     t->northEast = nullptr;
+    t->father= nullptr;
     return t;
 }
 
@@ -101,15 +98,20 @@ void subdivide(Qt tree) {
 
     boundary nwb = createBoundary(x - w, y + h, w, h);
     tree->northWest = createTree(nwb, n);
+    tree->northWest->father=tree;
     boundary neb = createBoundary(x + w, y + h, w, h);
     tree->northEast = createTree(neb, n);
+    tree->northEast->father=tree;
     boundary swb = createBoundary(x - w, y - h, w, h);
     tree->southWest = createTree(swb, n);
+    tree->southWest->father=tree;
     boundary seb = createBoundary(x + w, y - h, w, h);
     tree->southEast = createTree(seb, n);
+    tree->southEast->father=tree;
     tree->divided = true;
 
 }
+//ÅĞ¶Ï»ùÕ¾ÔÚµ±Ç°½ÚµãµÄÄÄ¸ö×Ó½Úµã
 int whereis(Qt tree,point ins)
 {
     if(contain(tree->southWest->bj,ins.x,ins.y))
@@ -122,6 +124,7 @@ int whereis(Qt tree,point ins)
         return 3;
     return -1;
 }
+//²ğ·Ö½Úµã²¢·ÖÉ¢µÄ×Ó½ÚµãÖĞ
 void replace(Qt tree)
 {
     for(int i=0;i<tree->length;i++)
@@ -144,6 +147,7 @@ void replace(Qt tree)
     }
     tree->length=-1;
 }
+//ÍùÊ÷ÀïÌí¼Ó½Úµã
 bool Qtinsert(Qt tree, point ins) {
     if (!contain(tree->bj, ins.x,ins.y)) {
         return false;
@@ -171,29 +175,64 @@ void pointprintf(point out)         //´òÓ¡»ùÕ¾ĞÅÏ¢
 void findmaxnw(Qt tree)             //ÕÒµ½×îÎ÷±±µÄ½Úµã
 {
     Qt temp=tree;
+    int t=0;
     while(temp->northWest)
     {
+        for(int i=0;i<temp->length;i++)
+        {
+            pointprintf(temp->points[i]);
+        }
         temp=temp->northWest;
     }
+    printf("ÕâÊÇÎ÷±±²àÊ÷Ò¶µÄ½Úµã\n");
     for(int i=0;i<temp->length;i++)
     {
         pointprintf(temp->points[i]);
     }
+    if(temp->father->northEast->length<0)
+        t=4+temp->father->northEast->length;
+    else
+        t=temp->father->northEast->length;
+    printf("ÕâÊÇÎ÷±±²àÊ÷Ò¶¶«²àÊ÷Ò¶\n");
+    for(int i=0;i<t;i++)
+    {
+        pointprintf(temp->father->northEast->points[i]);
+    }
+    if(temp->father->southWest->length<0)
+        t=4+temp->father->southWest->length;
+    else
+        t=temp->father->southWest->length;
+    printf("ÕâÊÇÎ÷±±²àÊ÷Ò¶ÄÏ²àÊ÷Ò¶ÀïµÄ½Úµã\n");
+    for(int i=0;i<t;i++)
+    {
+        pointprintf(temp->father->southWest->points[i]);
+    }
 }
 
-void findmaxse(Qt tree)             //ÕÒµ½×î¶«ÄÏ±ßµÄ½Úµã
+Qt findmaxse(Qt tree)             //ÕÒµ½×î¶«ÄÏ±ßµÄ½Úµã
 {
     Qt temp=tree;
     while(temp->southEast)
     {
         temp=temp->southEast;
     }
+    printf("ÕâÊÇ¶«ÄÏµÄÊ÷Ò¶½ÚµãµÄ»ùÕ¾\n");
     for(int i=0;i<temp->length;i++)
     {
         pointprintf(temp->points[i]);
     }
+    printf("ÕâÊÇ¶«ÄÏÊ÷Ò¶½ÚµãÎ÷±±²àµÄ»ùÕ¾\n");
+    for(int i=0;i<temp->father->northWest->length;i++)
+    {
+        pointprintf(temp->father->northWest->points[i]);
+    }
+    printf("ÕâÊÇ¶«ÄÏÊ÷Ò¶½Úµã±±µÄ»ùÕ¾\n");
+    for(int i=0;i<temp->father->northEast->length;i++)
+    {
+        pointprintf(temp->father->northEast->points[i]);
+    }
+    return temp;
 }
-
 typedef  struct receiver        //½ÓÊÕÆ÷Êı¾İ
 {
     double xs,ys,xe,ye;         //¿ªÊ¼Î»ÖÃºÍÖÕÖ¹Î»ÖÃ
@@ -204,7 +243,7 @@ double distance(double x1,double y1,double x2,double y2)        //·µ»Ø¾àÀëµÄÆ½·½
 {
     return (pow(x1-x2,2)+pow(y1-y2,2));
 }
-double getSignpower(double x,double y,point sou)
+double getSignpower(double x,double y,point sou)        //·µ»ØĞÅºÅÇ¿¶È
 {
     if(!strcmp("³ÇÇø",sou.type))
         return sou.sign*pow(300,2)/ distance(x,y,sou.x,sou.y);
@@ -214,36 +253,7 @@ double getSignpower(double x,double y,point sou)
         return sou.sign*pow(5000,2)/distance(x,y,sou.x,sou.y);
     return -1;
 }
-bool isLeaf(Qt node)
-{
-    if(node->northWest== nullptr)return false;
-    else return true;
-}
-bool isSecTree(Qt node)
-{
-    if(isLeaf(node->northWest)|| isLeaf(node->northEast)||isLeaf(node->southEast)||isLeaf(node->southWest))
-    return true;
-    else
-        return false;
-}
-Qt closetFather(Qt root, Qt node) {
-    Qt father = root;
-    double x = node->bj.x, y = node->bj.y;
-    while ((father->northWest != node || father->northEast != node || father->southWest != node ||father->southEast != node) )
-    {
-        if(isSecTree(father))break;
-        if (contain(father->southEast->bj, x, y))
-            father = father->southEast;
-        else if (contain(father->southWest->bj, x, y))
-            father = father->southWest;
-        else if (contain(father->northWest->bj, x, y))
-            father = father->northWest;
-        else father = father->northEast;
-
-    }
-    return father;
-}
-Qt searchtree(Qt tree,double x,double y)
+Qt searchtree(Qt tree,double x,double y)//²éÕÒÎ»ÖÃÔÚÊ÷ÖĞµÄÎ»ÖÃ
 {
     if(tree== nullptr)return tree;
     if (tree->southEast== nullptr)
@@ -281,7 +291,7 @@ boundary findMaxboundary(Qt tree,double x,double y) {
     }
     else
     {
-        minSquar= createBoundary(temp->bj.x,temp->bj.y,1.5*temp->bj.w,1.5*temp->bj.h);
+        minSquar= createBoundary(temp->bj.x,temp->bj.y,2*temp->bj.w,2*temp->bj.h);
     }
 
     return minSquar;
@@ -358,6 +368,8 @@ point* jzmax(Qt city,Qt village,Qt highway,double x,double y)
     }
     active[alength].num=-1;
     pointSort(active,alength,x,y);
+    if(n_ans==0)
+        ans->num=-1;
     n_ans=0;
     if(maxSignpower>=1)return active;
     else return active;
@@ -377,7 +389,7 @@ void reInit(receiver *t,int n)
 */
 int ydinput(receiver move[])
 {
-    FILE *yd= fopen("src/befordata/yd001.txt","r");
+    FILE *yd= fopen("src/update2/yd001.txt","r");
     if(yd== nullptr)
     {
         printf("ÎÄ¼ş´ò¿ªÊ§°Ü");
@@ -408,11 +420,26 @@ void inputOver(point a, point b)
 void outputOver(int overhs,int overhe,int overms,int overme,double secs,double sece)
 {
     double durtime;
-    if(overme<overms)
-    durtime=(overhe-overhs-1)*3600+(overme+60-overms)+sece-secs;
-    else
-        durtime=(overhe-overhs)*3600+(overme+60-overms)+sece-secs;
-    printf("¾­¹ı%fÃëÀë¿ªÖØµşÇø\n",durtime);
+    if(overme<overms&&sece>=secs)
+        durtime=(overhe-overhs-1)*3600+(overme+60-overms)*60+sece-secs;
+    else if(overme<overms&&sece<secs)
+        durtime=(overhe-overhs-1)*3600+(overme+60-overms-1)*60+sece+60-secs;
+    else if(overme>=overms&&sece>secs)
+        durtime=(overhe-overhs)*3600+(overme-overms)*60+sece-secs;
+    else durtime=(overhe-overhs)*3600+(overme-overms-1)*60+sece+60-secs;
+    printf("¾­¹ı%.2fÃëÀë¿ªÖØµşÇø\n",durtime);
+}
+void outConenectFake(int overhs,int overhe,int overms,int overme,double secs,double sece)       //Êä³öÁ¬½ÓÉÏÎ±»ùÕ¾µÄÊ±¼ä
+{
+    double durtime;
+    if(overme<overms&&sece>=secs)
+        durtime=(overhe-overhs-1)*3600+(overme+60-overms)*60+sece-secs;
+    else if(overme<overms&&sece<secs)
+        durtime=(overhe-overhs-1)*3600+(overme+60-overms-1)*60+sece+60-secs;
+    else if(overme>=overms&&sece>secs)
+        durtime=(overhe-overhs)*3600+(overme-overms)*60+sece-secs;
+    else durtime=(overhe-overhs)*3600+(overme-overms-1)*60+sece+60-secs;
+    printf("¾­¹ı%fÃëÓëÎ±»ùÕ¾¶Ï¿ªÁ¬½Ó\n",durtime);
 }
 //ÔÚ²»¼ÓÔØÎ±»ùÕ¾µÄÇé¿öÏÂ
 int movingWithoutfake(Qt city,Qt country,Qt highway,receiver move[]) {
@@ -496,9 +523,8 @@ boundary initMaxBoundary(FILE *jz1,FILE*jz2) //³õÊ¼»¯±ß½ç
 {
     char t[10];
     memset(t,0,sizeof(t));
-    fscanf(jz1,"%s",t);
+    fscanf(jz1,"%s",t);     //½«Ö¸ÕëÌø¹ıÎÄ¼şÍ·
     fscanf(jz2,"%s",t);
-    printf("%s\n",t);
     int num;
     char type[10];
     double force,posx,posy;
@@ -506,6 +532,7 @@ boundary initMaxBoundary(FILE *jz1,FILE*jz2) //³õÊ¼»¯±ß½ç
     char tycity[8]="³ÇÇø",tyvill[8]="ÏçÕò",tyheigh[8]="¸ßËÙ";
     while (fscanf(jz1,"%lf,%lf,%s,%lf,%d",&posx,&posy,type,&force,&num)!=EOF)
     {
+
         if(posx>xmax)xmax=posx;
         if(posy>ymax)ymax=posy;
         if(posx<xmin)xmin=posx;
@@ -527,7 +554,7 @@ boundary initMaxBoundary(FILE *jz1,FILE*jz2) //³õÊ¼»¯±ß½ç
     rewind(jz2);
     return bt;
 }
-void initInput(FILE* jz1,FILE *jz2,Qt tree,Qt citytree,Qt countryTree,Qt highway)
+void initInput(FILE* jz1,FILE *jz2,Qt tree,Qt citytree,Qt countryTree,Qt highway,point se[30],point nw[30],boundary bse,boundary bnw)//³õÊ¼»¯¶ÁÈë»ùÕ¾Î»ÖÃ
 {
     int num;
     char type[10],t[4];
@@ -544,6 +571,16 @@ void initInput(FILE* jz1,FILE *jz2,Qt tree,Qt citytree,Qt countryTree,Qt highway
             Qtinsert(countryTree, ins);
         else if(!strcmp("\xb8\xdf\xcb\xd9",type))
             Qtinsert(highway, ins);
+        if(contain(bse,posx,posy))
+        {
+            se[lengthofse]= pointCreate(posx,posy,type,num,force);
+            lengthofse++;
+        }
+        if(contain(bnw,posx,posy))
+        {
+            nw[lenthofnw]= pointCreate(posx,posy,type,num,force);
+            lenthofnw++;
+        }
     }
     fscanf(jz2,"%s",t);
     printf("ÕıÔÚ¶ÁÈ¡%s002\n",t);
@@ -553,24 +590,97 @@ void initInput(FILE* jz1,FILE *jz2,Qt tree,Qt citytree,Qt countryTree,Qt highway
         Qtinsert(tree,ins);
         if(!strcmp("\xb3\xc7\xc7\xf8",type))
             Qtinsert(citytree, ins);
+        if(contain(bse,posx,posy))
+        {
+            se[lengthofse]= pointCreate(posx,posy,type,num,force);
+            lengthofse++;
+        }
+        if(contain(bnw,posx,posy))
+        {
+            nw[lenthofnw]= pointCreate(posx,posy,type,num,force);
+            lenthofnw++;
+        }
     }
 }
 //±£´æÎ±½ÚµãµÄÊı¾İ½á¹¹
 typedef struct wzjz
 {
     double xs,xe,ys,ye,speed;//Æğµã×ø±ê£¬ÖÕµã×ø±ê£¬ËÙ¶È
-    int hs,ms,num;//¿ªÊ¼Ê±¼ä£¬
+    int hs,ms,num;//¿ªÊ¼Ê±¼ä£¬»ùÕ¾±àºÅ
+    double dx,dy;//ĞĞ½ø²½³¤
+    bool active;
 }wzjz;
+int wzInput(wzjz fake[])
+{
+    FILE *wz= fopen("src/update2/wz001.txt","r");
+    if(wz== nullptr)
+    {
+        printf("¶ÁÈëÊ§°Ü\n");
+        return 0;
+    }
+    char t[4];
+    fscanf(wz,"%s",t);
+    printf("ÕıÔÚ¶ÁÈ¡%s001.txt\n",t);
+    int i=0;
+    while(fscanf(wz,"%lf,%lf,%lf,%lf,%lf,%d,%d,%d",&fake[i].xs,&fake[i].ys,&fake[i].xe,&fake[i].ye,&fake[i].speed,&fake[i].hs,&fake[i].ms,&fake[i].num)!=EOF&&fake[i].xs!=-1)
+    {
+        fake[i].dx=(fake[i].xe-fake[i].xs)/ sqrt(distance(fake[i].xs,fake[i].ys,fake[i].xe,fake[i].ye))*fake[i].speed/3.6;
+        fake[i].dy=(fake[i].ye-fake[i].ys)/ sqrt(distance(fake[i].xs,fake[i].ys,fake[i].xe,fake[i].ye))*fake[i].speed/3.6;
+        fake[i].active=true;
+        i++;
+    }
+    printf("Ò»¹²¶ÁÈë%dĞĞÊı¾İ\n  ",i+1);
+    return i;
+}
+bool isAfter(int hour ,int min,int hs,int ms)
+{
+    if(((hour-hs)*60+(min-ms))>=0)return true;
+    else return false;
+}
+double durtime(int hour ,int min,double sec,wzjz t)
+{
+    double time;
+    if(min<t.ms)
+        time=(hour-t.hs-1)*3600+(min+60-t.ms)*60+sec;
+    else if(min>=t.ms)
+        time=(hour-t.hs)*3600+(min-t.ms)*60+sec;
+    return time;
+}
+int IsFake( double x,double y,wzjz fake[],int fnum,int hour,int min,double sec)
+{
+    int max=-1;
+    for(int i=0;i<fnum;i++)
+    {
+        if(isAfter(hour,min,fake[i].hs,fake[i].ms))
+        {
+            double xnow=fake[i].xs+fake[i].dx* durtime(hour,min,sec,fake[i]);
+            double ynow=fake[i].ys+fake[i].dy*durtime(hour,min,sec,fake[i]);
+            if(fabs(xnow-fake[i].xe)<0.5&& fabs(ynow-fake[i].ye)<0.5){fake[i].dx=0;fake[i].dy=0;fake[i].active=false;}
+            double t=sqrt(distance(x,y,fake[i].xs+fake[i].dx* durtime(hour,min,sec,fake[i]),fake[i].ys+fake[i].dy*durtime(hour,min,sec,fake[i])));
+//          if(i>3)
+//           printf("[%d:%d:%f]yd(%f %f)wz(%f,%f)dis=%f\n",hour,min,sec,x,y,xnow,ynow,t);
+            if(t<=40)
+            {
+                max = fake[i].num;
+            }
+        }
+        }
+    return max;
+}
 
 //ÔÚ¿¼ÂÇÎ±½ÚµãµÄÇé¿ö
-int movingWithAll(Qt city,Qt country,Qt highway,receiver move[]) {
+int movingWithAll(Qt city,Qt country,Qt highway,receiver move[],wzjz fake[ ],int fnum) {
     int i = 0;
+    int overtop=-1;
+    int overhs,overhe,overms,overme;double overt,overte;//ÖØµş¿ªÊ¼£¬½áÊøÊ±¼ä
+    int cfhs,cfhe,cfms,cfme;double cfts,cfte;//Á¬½ÓÎ±»ùÕ¾Ê±¼ä
     double dx, dy;//Ã¿¸öÊ±¼ä¶ÎÒÆ¶¯µÄx£¬y·½ÏòÉÏµÄ¾àÀë
     double xnow, ynow;//µ±Ç°Ê±¼ä¶ÎµÄ×ø±ê
     int durmins, dursec;//Ã¿¶Î¾­Àú¹ıµÄÊ±¼ä
     double rangxkm, rangykm;//¾àÀëµÄÆ½·½
     double ticks;//µ±Ç°ÃëÊı
     int numbef = 0, numNow;
+    bool isf= false;
     int timenowh, timeNowmin;
     if (move[i].speed == 0)printf("Î´ÊäÈëÊı¾İ");
     else
@@ -588,14 +698,53 @@ int movingWithAll(Qt city,Qt country,Qt highway,receiver move[]) {
             timeNowmin = move[i].sm;
             xnow = move[i].xs, ynow = move[i].ys;
             point *temp = nullptr;
+            int ht;
             int j = 0, k = 0;
             for (j = 0; j < dursec; j++) {
-                temp = jzmax(city, country, highway, xnow, ynow);
-                if (temp != nullptr)numNow = temp->num;
-                else numNow = -1;
-                if (numbef != numNow) {
-                    display(temp, numNow, xnow, ynow, timenowh, timeNowmin, ticks);
-                    numbef = numNow;
+                if((ht=IsFake(xnow,ynow,fake,fnum,timenowh,timeNowmin,ticks))!=-1)
+                {
+                    if(!isf)
+                    {
+                        printf("Á¬½ÓÉÏÎ±»ùÕ¾£¬±àºÅÎª%d\n",ht);
+                        isf=true;
+                        cfhs=timenowh;cfms=timeNowmin;cfts=ticks;
+                    }
+
+                }
+                else
+                {
+                    if(isf)
+                    {
+                        outConenectFake(cfhs,timenowh,cfms,timeNowmin,cfms,ticks);
+                        isf= false;
+                    }
+                    isf= false;
+                    temp = jzmax(city, country, highway, xnow, ynow);
+
+                    if (temp != nullptr)numNow = temp->num;
+                    else numNow = -1;
+                    if (numbef != numNow) {
+                        display(temp, numNow, xnow, ynow, timenowh, timeNowmin, ticks);
+                        numbef = numNow;
+                    }
+                }
+                if(temp[1].num!=-1&&temp[0].num!=-1)
+                {
+                    if(overtop!=1)
+                    {
+                        inputOver(temp[0], temp[1]);
+                        overhs=timenowh;overms=timeNowmin;overt=ticks;
+                        overtop=true;
+                    }
+                }
+                else
+                {
+                    if(overtop==1)
+                    {
+                        overhe=timenowh;overme=timeNowmin;overte=ticks;
+                        outputOver(overhs,overhe,overms,overme,overt,overte);
+                        overtop=0;
+                    }
                 }
                 ticks++;
                 xnow += dx;
@@ -613,10 +762,62 @@ int movingWithAll(Qt city,Qt country,Qt highway,receiver move[]) {
             {
                 xnow = move[i].xe;
                 ynow = move[i].ye;
-                temp = jzmax(city, country, highway, xnow, ynow);
-                if (temp != nullptr)numNow = temp->num;
-                else numbef = -1;
-                display(temp, numNow, xnow, ynow, timenowh, timeNowmin, ticks);
+                dx=(move[i].xe-move[i].xs)/ sqrt(distance(move[i].xs,move[i].ys,move[i].xe,move[i].ye))*move[i].speed/3.6;
+                dy=(move[i].ye-move[i].ys)/ sqrt(distance(move[i].xs,move[i].ys,move[i].xe,move[i].ye))*move[i].speed/3.6;
+                while(move[i].xs>move[i].xe) {
+                    if ((ht = IsFake(xnow, ynow, fake, fnum, timenowh, timeNowmin, ticks)) != -1) {
+                        if (!isf) {
+                            printf("Á¬½ÓÉÏÎ±»ùÕ¾£¬±àºÅÎª%d\n", ht);
+                            isf = true;
+                            cfhs = timenowh;
+                            cfms = timeNowmin;
+                            cfts = ticks;
+                        }
+
+                    } else {
+                        if (isf) {
+                            outConenectFake(cfhs, timenowh, cfms, timeNowmin, cfms, ticks);
+                            isf = false;
+                        }
+                        isf = false;
+                        temp = jzmax(city, country, highway, xnow, ynow);
+                        if (temp != nullptr)numNow = temp->num;
+                        else numNow = -1;
+                        if (numbef != numNow) {
+                            display(temp, numNow, xnow, ynow, timenowh, timeNowmin, ticks);
+                            numbef = numNow;
+                        }
+                    }
+                    if(temp[1].num!=-1&&temp[0].num!=-1)
+                    {
+                        if(overtop!=1)
+                        {
+                            inputOver(temp[0], temp[1]);
+                            overhs=timenowh;overms=timeNowmin;overt=ticks;
+                            overtop=true;
+                        }
+                    }
+                    else
+                    {
+                        if(overtop==1)
+                        {
+                            overhe=timenowh;overme=timeNowmin;overte=ticks;
+                            outputOver(overhs,overhe,overms,overme,overt,overte);
+                            overtop=0;
+                        }
+                    }
+                    ticks++;
+                    xnow += dx;
+                    ynow += dy;
+                    if (ticks >= 60) {
+                        timeNowmin++;
+                        ticks = 0;
+                    }
+                    if (timeNowmin >= 60) {
+                        timenowh++;
+                        timeNowmin = 0;
+                    }
+                }
             }
             i++;
         }
