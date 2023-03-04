@@ -9,7 +9,9 @@ int readfile(FILE *jz1,FILE *jz2,receiver move[30],wzjz fake[30],Qt tree,Qt city
     else
         printf("读入成功\n");
     initInput(jz1,jz2,tree,citytree,country,highway,se,nw,bse,bnw);
+    reInit(move,30);
     ydinput(move);
+
     return wzInput(fake);
 }
 void button(int x, int y, int w, int h,const char* text)
@@ -33,10 +35,14 @@ void task2(Qt tree)
 }
 void task1(point se[30],point nw[30])
 {
+    //输出西北分块的节点
+    printf("以下是西北分块的节点");
     for(int i=0;i<lenthofnw;i++)
     {
         pointprintf(nw[i]);
     }
+    //输出东南分块的节点
+    printf("以下是东南分块的节点");
     for(int i=0;i<lengthofse;i++)
     {
         pointprintf(se[i]);
