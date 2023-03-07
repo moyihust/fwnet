@@ -1,4 +1,4 @@
-//
+
 // Created by 14413 on 2023/2/2
 #include <graphics.h>
 #include "quadtree.h"
@@ -36,13 +36,13 @@ void task2(Qt tree)
 void task1(point se[30],point nw[30])
 {
     //输出西北分块的节点
-    printf("以下是西北分块的节点");
+    printf("以下是西北分块的节点\n");
     for(int i=0;i<lenthofnw;i++)
     {
         pointprintf(nw[i]);
     }
     //输出东南分块的节点
-    printf("以下是东南分块的节点");
+    printf("以下是东南分块的节点\n");
     for(int i=0;i<lengthofse;i++)
     {
         pointprintf(se[i]);
@@ -66,10 +66,14 @@ void returnBefore()
 {
     system("cls");
 }
-void finish()
+void finish(Qt tree,Qt city,Qt country,Qt highway)
 {
     closegraph();
     returnBefore();
+    deletetree(tree);
+    deletetree(city);
+    deletetree(country);
+    deletetree(highway);
 }
 void paintMenu()
 {
@@ -102,12 +106,15 @@ void startProgram()
     FILE* jz1=fopen("src/update2/jz001.txt","r");       //读入文件指针
     FILE* jz2=fopen("src/update2/jz002.txt","r");
     boundary bt= initMaxBoundary(jz1,jz2);
-    bse= createBoundary(bt.x-bt.w+1000,bt.y+bt.h-1000,1000,1000);
-    bnw= createBoundary(bt.x+bt.w-1000,bt.y-bt.h+1000,1000,1000);
+    bnw= createBoundary(500,39550,500,500);
+    bse= createBoundary(bt.x-bt.w+2000,bt.y+bt.h-2000,2000,2000);
+//    printf("%d", contain(bnw,14,49228));
     Qt tree= createTree(bt,4);
     Qt citytree=createTree(bt, 4);
     Qt countryTree=createTree(bt, 4);
     Qt highway=createTree(bt, 4);
+
+
     receiver move[30];//存储接收器移动的路径
     wzjz fake[30];//伪基站移动的路径
     int fnum=5;
@@ -147,7 +154,7 @@ void startProgram()
                 }
                 else if(msg.x>10&&msg.x<110&&msg.y>345&&msg.y<380)
                 {
-                    finish();
+                    finish(tree,citytree,countryTree,highway);
                 }
             }
         }

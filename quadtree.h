@@ -60,7 +60,6 @@ typedef struct Quadtree {
     point points[4];     //当前区域的节点
     int length;     //当前基站
     int captical;   //当前节点的最大数量
-    char type[5];
     struct Quadtree *father;
     struct Quadtree *southWest;     //西南的子节点
     struct Quadtree *southEast;     //东南的子节点
@@ -245,6 +244,11 @@ double distance(double x1,double y1,double x2,double y2)        //返回距离的平方
 }
 double getSignpower(double x,double y,point sou)        //返回信号强度
 {
+    if(distance(sou.x,sou.y,x,y)==0)
+    {
+        return 99999999;
+    }
+    else
     if(!strcmp("城区",sou.type))
         return sou.sign*pow(300,2)/ distance(x,y,sou.x,sou.y);
     else if(!strcmp("乡镇",sou.type))
@@ -420,13 +424,7 @@ void inputOver(point a, point b)
 void outputOver(int overhs,int overhe,int overms,int overme,double secs,double sece)
 {
     double durtime;
-    if(overme<overms&&sece>=secs)
-        durtime=(overhe-overhs-1)*3600+(overme+60-overms)*60+sece-secs;
-    else if(overme<overms&&sece<secs)
-        durtime=(overhe-overhs-1)*3600+(overme+60-overms-1)*60+sece+60-secs;
-    else if(overme>=overms&&sece>secs)
-        durtime=(overhe-overhs)*3600+(overme-overms)*60+sece-secs;
-    else durtime=(overhe-overhs)*3600+(overme-overms-1)*60+sece+60-secs;
+    durtime=overhe*3600+overme*60+sece-overhs*3600-overms*60-secs;
     printf("经过%.2f秒离开重叠区\n",durtime);
 }
 void outConenectFake(int overhs,int overhe,int overms,int overme,double secs,double sece)       //输出连接上伪基站的时间
@@ -453,6 +451,7 @@ int movingWithoutfake(Qt city,Qt country,Qt highway,receiver move[]) {
     int overhs,overhe,overms,overme;double overt,overte;
     int numbef = 0, numNow;
     int timenowh, timeNowmin;
+    int decrease=0;
     if (move[i].speed == 0)printf("未输入数据");
     else
         while (move[i].speed != 0) {
@@ -490,6 +489,7 @@ int movingWithoutfake(Qt city,Qt country,Qt highway,receiver move[]) {
                     if(overtop==1)
                     {
                         overhe=timenowh;overme=timeNowmin;overte=ticks;
+
                         outputOver(overhs,overhe,overms,overme,overt,overte);
                         overtop=0;
                     }
@@ -528,7 +528,7 @@ boundary initMaxBoundary(FILE *jz1,FILE*jz2) //初始化边界
     int num;
     char type[10];
     double force,posx,posy;
-    double xmax=0,ymax=0,xmin=99999,ymin=99999;
+    double xmax=0,ymax=0,xmin=999999,ymin=999999;
     char tycity[8]="城区",tyvill[8]="乡镇",tyheigh[8]="高速";
     while (fscanf(jz1,"%lf,%lf,%s,%lf,%d",&posx,&posy,type,&force,&num)!=EOF)
     {
@@ -823,6 +823,18 @@ int movingWithAll(Qt city,Qt country,Qt highway,receiver move[],wzjz fake[ ],int
         }
     return 0;
 }
-
-
+//结束后删除树
+void deletetree(Qt tree)
+{
+    if(tree== nullptr)
+        return;
+    else
+    {
+        deletetree(tree->southWest);
+        deletetree(tree->northEast);
+        deletetree(tree->southEast);
+        deletetree(tree->northWest);
+        free(tree);
+    }
+}
 #endif
